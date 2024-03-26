@@ -2,13 +2,39 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from ..resources import resources as INFO
-from .. downloaders import fileDownloader as DOWN
-import runpy as RUN
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from selenium import webdriver
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver import ActionChains
+import os, re, time, random
+#from ..fileparsers import FileParser as FP
+import keyboard
+import pyautogui
+
+import sys
+sys.path.insert(0, '/Users/adelal-aali/Documents/ZoomInfo/pythonProject/project/fileparsers')  # Add the path to the utils directory
+import FileParser as FP
+
+
+# #import project.resources.resourcesInfo as INFO
+# #from ..resources import resourcesInfo
+# from project.downloaders import fileDownloader as DOWN
+# # from downloaders import fileDownloader as DOWN
+# import runpy as RUN
+# import sys, time, datetime
+# from project.fileparsers import fileParser as FP ## ACCESS TO FILE PARSERS
+# from project.downloaders import fileDownloaderV as DWN  ## ACCESS TO DOWNLOADERS
+# from ..resources import resourcesInfo
 
 
 
-
+# fp = FP.fileParser("/Users/adelal-aali/Documents/ZoomInfo/pythonProject/project/fileparsers/hrefdata.txt")
+#fp.read_file()
 
 # svc = webdriver.ChromeService(executable_path=binary_path)
 # driver = webdriver.Chrome(service=svc)
@@ -17,82 +43,104 @@ import runpy as RUN
 # assert "Python" in driver.title
 
 # make sure this path is correct
-PATH = "C:\Program Files (x86)\ChromeDriver\chromedriver.exe"
-
-driver = webdriver.Chrome(PATH)
-
-LOGIN = "https://www.bestbuy.com/site/nvidia-geforce-rtx-3070-8gb-gddr6-pci-express-4-0-graphics-card-dark-platinum-and-black/6429442.p?skuId=6429442"
-LINK1 = "https://www.bestbuy.com/site/gigabyte-geforce-rtx-3070-8g-gddr6-pci-express-4-0-graphics-card-black/6437912.p?skuId=6437912"
-LINK2 = "https://www.bestbuy.com/site/microsoft-xbox-one-s-1tb-console-bundle-white/6415222.p?skuId=6415222"
-
-driver.get(LOGIN)
-
-isComplete = False
-
-while not isComplete:
-    # find add to cart button
-    try:
-        atcBtn = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, ".add-to-cart-button"))
-        )
-    except:
-        driver.refresh()
-        continue
-
-    print("Add to cart button found")
-
-    try:
-        # add to cart
-        atcBtn.click()
-
-        # go to cart and begin checkout as guest
-        driver.get("https://www.bestbuy.com/cart")
-
-        checkoutBtn = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/main/div/div[2]/div[1]/div/div/span/div/div[2]/div[1]/section[2]/div/div/div[3]/div/div[1]/button"))
-        )
-        checkoutBtn.click()
-        print("Successfully added to cart - beginning check out")
-
-        # fill in email and password
-        emailField = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.ID, "fld-e"))
-        )
-        emailField.send_keys(info.email)
-
-        pwField = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.ID, "fld-p1"))
-        )
-        pwField.send_keys(info.password)
-
-        # click sign in button
-        signInBtn = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/div/section/main/div[1]/div/div/div/div/form/div[3]/button"))
-        )
-        signInBtn.click()
-        print("Signing in")
-
-        # fill in card cvv
-        cvvField = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.ID, "credit-card-cvv"))
-        )
-        cvvField.send_keys(info.cvv)
-        print("Attempting to place order")
-
-        # place order
-        placeOrderBtn = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, ".button__fast-track"))
-        )
-        placeOrderBtn.click()
-
-        isComplete = True
-    except:
-        # make sure this link is the same as the link passed to driver.get() before looping
-        driver.get(LINK1)
-        print("Error - restarting bot")
-        continue
-
-print("Order successfully placed")
+PATH = "/Users/adelal-aali/Documents/ZoomInfo/pythonProject/project/resources/chromedriver"
+HREF = "/Users/adelal-aali/Documents/ZoomInfo/pythonProject/project/fileparsers/hrefdata.txt"
+# driver = webdriver.Chrome(PATH)
+# LOGIN = "https://login.zoominfo.com/"
+# USER = resourcesInfo.resourcesInfo.ADDR
+# PASS = resourcesInfo.resourcesInfo.PASS
+#
+# print(f"[!] USER: \{USER} \n [!] PASS: \{PASS}")
 
 
+''' * This function will parse the file(after user adds sites)  and add the data to a list for selenium to access'''
+def fileParser():
+    FP.fileParser.addToList("/Users/adelal-aali/Documents/ZoomInfo/pythonProject/project/fileparsers/hrefdata.txt")
+    FP.fileParser.read_file("/Users/adelal-aali/Documents/ZoomInfo/pythonProject/project/fileparsers/hrefdata.txt")
 
+
+def setupDrive(url):
+    # Set the path to the chromedriver executable
+    chrome_driver_path = '/Users/adelal-aali/Documents/ZoomInfo/pythonProject/project/run/chromedriver'
+    # Set up Chrome options
+    chrome_options = Options()
+    # chrome_options.add_argument("--headless")  # Run Chrome in headless mode (no GUI)
+    # user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.517 Safari/537.36'
+
+    # Add headers
+    user_agent =  ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) '
+    'AppleWebKit/537.36 (KHTML, like Gecko) '
+    'Chrome/39.0.2171.95 Safari/537.36')
+
+    #chrome_options.add_argument('user-agent={0}'.format(user_agent))
+    chrome_options.add_argument(f'user-agent={user_agent}')
+    # Remove the Automation Info
+    chrome_options.add_argument('--disable-infobars')
+
+    # Initialize the Chrome WebDriver
+    service = Service(chrome_driver_path)
+
+    ## SO THE PRINT INTERFACE DOES NOT SHOW UP
+    chrome_options.add_argument('--kiosk-printing')
+
+    driver = webdriver.Chrome(service=service, options=chrome_options)
+    wait = WebDriverWait(driver, 20)
+    action = ActionChains(driver)
+
+    def stop_driver(e):
+        if e.name == 'esc':
+            driver.quit()
+    def runDriver():
+        # Open a webpage
+        runUrl = url
+        driver.get(runUrl)
+
+        # Get the page title
+        title = driver.title
+        print("Page title:", title)
+        driver.execute_script("window.print();")
+        # Wait for a few seconds to allow the print dialog to appear
+        print("****************************************************************")
+        print("[!] Clicking ")
+        driver.implicitly_wait(3)
+        pyautogui.click()
+        pyautogui.press('enter')
+        pyautogui.press('enter')
+        #keyboard.KeyboardEvent('enter')
+        # Close the browser
+        driver.quit()
+
+    keyboard.on_press(stop_driver)
+    runDriver()
+
+
+fileParser()
+import_websites = FP.fileParser.websites
+print("[!] Website List \n", import_websites)
+print("[!] Website List \n", type(import_websites), "\n[LENGTH]", len(import_websites), "sites added")
+
+for(i) in range(0, len(import_websites)):
+    print(f"[!] processing Site: {import_websites[i]}")
+    url = import_websites[i]
+    setupDrive(url)
+    i+= 1
+#
+#
+# class Run() :
+#     def __init__(self):
+#         self.driver = webdriver.Chrome(PATH)
+#         self.driver.get(LOGIN)
+#         self.maximize_window()
+#         key = Keys()
+#
+#         ''' USE THIS TO ADD EXTENSIONS TO CHROME (ADBLOCKER, ETC) '''
+#         # options = self.chrome_options()
+#         # self.driver = webdriver.Chrome(PATH, options=options)
+#
+#     def getHREF(self):
+#         print("[!] Getting HREF from file")
+#         with open(HREF, 'r') as f:
+#             href = f.read()
+#             print(f"[!] HREF: {href}")
+#             return href
+# Run.getHREF()
